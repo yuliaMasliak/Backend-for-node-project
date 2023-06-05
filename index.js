@@ -76,7 +76,7 @@ app.get('/persons/:id', (req, res) => {
 app.delete('/persons/:id', (req, res) => {
   const id = Number(req.params.id);
   const array = notes.filter((el) => el.id !== id);
-  console.log(array);
+  notes = array;
   res.json(array);
 });
 
