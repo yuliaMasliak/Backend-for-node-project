@@ -40,11 +40,11 @@ app.get('/', (req, res) => {
   res.send('Hello');
 });
 
-app.get('/api/notes', (req, res) => {
+app.get('/persons', (req, res) => {
   res.json(notes);
 });
 
-app.get('/api/notes/:id', (req, res) => {
+app.get('/persons/:id', (req, res) => {
   const id = Number(req.params.id);
   const note = notes.find((el) => el.id === id);
   res.json(notes.find((el) => el.id === id));
@@ -55,7 +55,7 @@ app.get('/info', (req, res) => {
   res.send(`Pnhonebook has info for ${notes.length} people<br/>${date}`);
 });
 
-app.get('/api/persons/:id', (req, res) => {
+app.get('/persons/:id', (req, res) => {
   const id = Number(req.params.id);
 
   let ids = notes.map((el) => {
@@ -73,14 +73,14 @@ app.get('/api/persons/:id', (req, res) => {
   });
 });
 
-app.delete('/api/persons/:id', (req, res) => {
+app.delete('/persons/:id', (req, res) => {
   const id = Number(req.params.id);
   const array = notes.filter((el) => el.id !== id);
   console.log(array);
   res.json(array);
 });
 
-app.post('/api/persons', (req, res) => {
+app.post('/persons', (req, res) => {
   const idGenerator = () => {
     return notes.length ? Math.max(...notes.map((note) => note.id)) + 1 : 0;
   };
