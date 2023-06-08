@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
+mongoose.set('strictQuery', false);
+
 const url = process.env.MONGODB_URI;
+
+console.log('connecting to', url);
 
 mongoose
   .connect(url)
@@ -11,9 +15,16 @@ mongoose
     console.log('error connecting to MongoDB:', error.message);
   });
 
-const contactSchema = new mongoose.Schema('Contact', {
+const noteSchema = new mongoose.Schema({
   name: String,
-  number: String
+  number: Boolean
 });
 
-module.exports = mongoose.model('Contact', contactSchema);
+noteSchema.set('toJSON', {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString();
+    delete returnedObject.__v;
+  }
+});
+
+module.exports = mongoose.model('Note', noteSchema);
