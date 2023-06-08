@@ -1,6 +1,7 @@
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const Contact = require('./models/notes');
 
 const app = express();
 app.use(cors());
@@ -41,7 +42,9 @@ app.get('/', (req, res) => {
 });
 
 app.get('/persons', (req, res) => {
-  res.json(notes);
+  Contact.find({}).then((res) => {
+    res.json(notes);
+  });
 });
 
 app.get('/persons/:id', (req, res) => {
