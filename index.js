@@ -29,17 +29,20 @@ app.get('/persons', (req, res) => {
   });
 });
 
-app.get('/persons/:id', (req, res) => {
-  Contact.find({ id: req.params.id }).then((contact) => {
-    res.json(contact);
+app.put('/persons/:id', (req, res) => {
+  Contact.findByIdAndUpdate(req.params.id, req.body, {
+    new: true
+  }).then((result) => {
+    res.json(result);
   });
 });
 
-app.delete('/persons/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const array = notes.filter((el) => el.id !== id);
-  notes = array;
-  res.json(array);
+app.delete('/persons/:id', (req, res, next) => {
+  Contact.findByIdAndRemove(req.params.id)
+    .then((result) => {
+      res.status(200).end();
+    })
+    .catch((error) => next(error));
 });
 
 app.post('/persons', (req, res) => {
@@ -49,25 +52,40 @@ app.post('/persons', (req, res) => {
       error: 'data is missing'
     });
   }
-
-  // Contact.find({}).then((result) => {
-  //   result.forEach((contact) => {
-  //     if (contact.name === req.body.name) {
-  //       console.log('name must be unique');
-  //       return res.status(404).json({ error: 'name must be unique' });
-  //     }
-  //   });
-  // });
-
-  const contact = new Contact({
-    name: req.body.name,
-    number: req.body.number
+  let existingContact = false;
+  Contact.find({}).then((result) => {
+    result.forEach((contact) => {
+      if (contact.name === req.body.name) {
+        existingContact = true;
+      }
+    });
   });
+  if (existingContact) {
+    console.log('name must be unique');
+    res.status(404).json({ error: 'name must be unique' }).end();
+  } else {
+    const contact = new Contact({
+      name: req.body.name,
+      number: req.body.number
+    });
 
-  contact.save().then((result) => {
-    res.json(result);
-  });
+    contact.save().then((result) => {
+      res.json(result);
+    });
+  }
 });
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' });
+  }
+
+  next(error);
+};
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 
