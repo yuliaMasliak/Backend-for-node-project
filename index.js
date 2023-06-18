@@ -29,24 +29,33 @@ app.get('/persons', (req, res) => {
   });
 });
 
-app.put('/persons/:id', (req, res) => {
-  Contact.findByIdAndUpdate(req.params.id, req.body, {
-    new: true
-  }).then((result) => {
-    res.json(result);
-  });
+app.put('/persons/:id', (req, res, next) => {
+  const { name, number } = req.body;
+  Contact.findByIdAndUpdate(
+    req.params.id,
+    { name, number },
+    { new: true, runValidators: true, context: 'query' }
+  )
+    .then((result) => {
+      res.json(result);
+    })
+    .catch((error) => {
+      next(error);
+    });
 });
 
 app.delete('/persons/:id', (req, res, next) => {
   Contact.findByIdAndRemove(req.params.id)
     .then((result) => {
       res.status(200).end();
+      res.json(result);
     })
-    .catch((error) => next(error));
+    .catch((error) => {
+      next(error);
+    });
 });
 
-app.post('/persons', (req, res) => {
-  console.log('post');
+app.post('/persons', (req, res, next) => {
   if (!req.body.name || !req.body.number) {
     return res.status(400).json({
       error: 'data is missing'
@@ -69,17 +78,28 @@ app.post('/persons', (req, res) => {
       number: req.body.number
     });
 
-    contact.save().then((result) => {
-      res.json(result);
-    });
+    contact
+      .save()
+      .then((result) => {
+        res.json(result);
+      })
+      .catch((error) => {
+        next(error);
+      });
   }
 });
 
 const errorHandler = (error, request, response, next) => {
-  console.error(error.message);
+  console.error(error.name);
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' });
+  } else if (error.name === 'ValidationError') {
+    return response
+      .status(400)
+      .send({
+        error: 'Min length of the name 2 characters,  number - 5 characters'
+      });
   }
 
   next(error);
