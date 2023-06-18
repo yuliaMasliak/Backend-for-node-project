@@ -8,7 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-morgan.token('body', function (req, res) {
+morgan.token('body', function (req) {
   return JSON.stringify(req.body);
 });
 app.use(
@@ -18,9 +18,14 @@ app.use(
 app.get('/', (req, res) => {
   res.send('Start page');
 });
+
 app.get('/info', (req, res) => {
   let date = new Date();
-  res.send(`Pnhonebook has info for ${notes.length} people<br/>${date}`);
+  Contact.find({}).then((result) => {
+    const message =
+      'Phonebook has info for ' + result.length + ' people' + '<br/ >' + date;
+    res.send(message);
+  });
 });
 
 app.get('/persons', (req, res) => {
@@ -95,11 +100,9 @@ const errorHandler = (error, request, response, next) => {
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' });
   } else if (error.name === 'ValidationError') {
-    return response
-      .status(400)
-      .send({
-        error: 'Min length of the name 2 characters,  number - 5 characters'
-      });
+    return response.status(400).send({
+      error: 'Min length of the name 2 characters,  number - 5 characters'
+    });
   }
 
   next(error);
